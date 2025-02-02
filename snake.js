@@ -19,9 +19,71 @@ let gamePaused = false;
 let speed = 100;
 
 const snakeImg = new Image();
-snakeImg.src = "./snake.png"; // 图片路径与js路径一致
+snakeImg.src = "./snake.png"; 
 const foodImg = new Image();
-foodImg.src = "./food.png"; // 图片路径与js路径一致
+foodImg.src = "./food.png";
+
+// 创建手机按键
+const controls = document.createElement("div");
+controls.style.position = "absolute";
+controls.style.bottom = "20px";
+controls.style.left = "50%";
+controls.style.transform = "translateX(-50%)";
+controls.style.display = "grid";
+controls.style.gridTemplateColumns = "repeat(3, 60px)";
+controls.style.gridGap = "10px";
+document.body.appendChild(controls);
+
+const buttons = [
+    { label: "⏸", action: "pause" },
+    { label: "➕", action: "speedUp" },
+    { label: "➖", action: "speedDown" },
+    { label: "⬆", direction: "up" },
+    { label: "🔄", action: "restart" },
+    { label: "⬇", direction: "down" },
+    { label: "⬅", direction: "left" },
+    { label: "➡", direction: "right" }
+];
+
+buttons.forEach(({ label, direction, action }) => {
+    const btn = document.createElement("button");
+    btn.innerText = label;
+    btn.style.fontSize = "20px";
+    btn.style.padding = "10px";
+    btn.style.borderRadius = "5px";
+    btn.style.border = "none";
+    btn.style.cursor = "pointer";
+    btn.style.width = "60px";
+    btn.style.height = "60px";
+    btn.style.textAlign = "center";
+    
+    btn.onclick = () => {
+        if (direction) {
+            if ((direction === "left" && direction !== "right") ||
+                (direction === "right" && direction !== "left") ||
+                (direction === "up" && direction !== "down") ||
+                (direction === "down" && direction !== "up")) {
+                window.gameDirection = direction;
+            }
+        }
+        if (action === "pause") gamePaused = !gamePaused;
+        if (action === "speedUp") speed = Math.max(50, speed - 10);
+        if (action === "speedDown") speed = Math.min(200, speed + 10);
+        if (action === "restart") restartGame();
+    };
+    
+    controls.appendChild(btn);
+});
+
+function restartGame() {
+    snake = [{ x: 10, y: 10 }];
+    direction = "right";
+    food = { x: 5, y: 5 };
+    gameRunning = true;
+    gamePaused = false;
+    speed = 100;
+    gameLoop();
+}
 
 function draw() {
     ctx.fillStyle = "black";
@@ -47,6 +109,7 @@ function draw() {
 function update() {
     if (!gameRunning || gamePaused) return;
     let head = { ...snake[0] };
+    if (window.gameDirection) direction = window.gameDirection;
     if (direction === "right") head.x++;
     if (direction === "left") head.x--;
     if (direction === "up") head.y--;
@@ -72,9 +135,10 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft" && direction !== "right") direction = "left";
     if (e.key === "ArrowUp" && direction !== "down") direction = "up";
     if (e.key === "ArrowDown" && direction !== "up") direction = "down";
-    if (e.key === " ") gamePaused = !gamePaused; // 空格键暂停或继续
-    if (e.key === "+") speed = Math.max(50, speed - 10); // 加快速度
-    if (e.key === "-") speed = Math.min(200, speed + 10); // 减慢速度
+    if (e.key === " ") gamePaused = !gamePaused;
+    if (e.key === "+") speed = Math.max(50, speed - 10);
+    if (e.key === "-") speed = Math.min(200, speed + 10);
+    if (e.key === "r") restartGame();
 });
 
 function gameLoop() {
